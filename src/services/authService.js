@@ -1,7 +1,7 @@
 import prisma from "../lib/prisma.js";
 
 export async function findUserByEmail(email) {
-  return await prisma.user.findUnique({
+  return await prisma.users.findUnique({
     where: { email },
     select: {
       id: true,

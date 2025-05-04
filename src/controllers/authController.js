@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { signToken } from "../utils/jwt.js";  
 import { findUserByEmail } from "../services/authService.js";
-import { verifyToken } from "../utils/jwt.js";  
+ 
 
 export const login = async (req, res) => {
   try {
@@ -42,26 +42,26 @@ export const login = async (req, res) => {
   }
 };
 
-export const validateToken = async (req, res) => {
-  try {
-    const authHeader = req.headers.authorization;
+// export const validateToken = async (req, res) => {
+//   try {
+//     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({ valid: false, error: "No token provided" });
-    }
+//     if (!authHeader || !authHeader.startsWith("Bearer ")) {
+//       return res.status(401).json({ valid: false, error: "No token provided" });
+//     }
 
-    const token = authHeader.split(" ")[1];
-    const decoded = verifyToken(token); 
+//     const token = authHeader.split(" ")[1];
+//     const decoded = verifyToken(token); 
 
-    console.log("✅ Token valid for user:", decoded);
+//     console.log("✅ Token valid for user:", decoded);
 
-    return res.status(200).json({
-      valid: true,
-      user: decoded
-    });
+//     return res.status(200).json({
+//       valid: true,
+//       user: decoded
+//     });
 
-  } catch (error) {
-    console.error("❌ Token validation failed:", error.message);
-    return res.status(401).json({ valid: false, error: "Invalid or expired token" });
-  }
-};
+//   } catch (error) {
+//     console.error("❌ Token validation failed:", error.message);
+//     return res.status(401).json({ valid: false, error: "Invalid or expired token" });
+//   }
+// };

@@ -7,7 +7,7 @@ export const getUser = async (req, res) => {
   const userId = parseInt(req.params.id);
 
   try {
-    const user = await prisma.user.findUnique({
+    const user = await prisma.users.findUnique({
       where: {
         id: userId,
       },
