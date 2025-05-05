@@ -4,13 +4,11 @@ export async function findUserByEmail(email) {
   return await prisma.users.findUnique({
     where: { email },
     select: {
-      id: true,
+      user_id: true,
       email: true,
-      fullName: true,
-      phoneNumber: true,
-      birthDate: true,
-      adress: true,
-      userType: true,
+      username: true,
+      phone_number: true,
+      is_active: true,
       password: true
     }
   });
