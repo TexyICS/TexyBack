@@ -3,6 +3,7 @@ import cors from "cors";
 import { PrismaClient } from '@prisma/client';
 import authRoutes from "./routes/authRoutes.js";
 import usersRoutes from "./routes/usersRoutes.js";
+import logsRoutes from "./routes/logsRoutes.js";
 
 const app = express();
 const prisma = new PrismaClient();
@@ -12,6 +13,8 @@ app.use(express.json());
 app.use(cors());
 app.use("/auth", authRoutes);
 app.use("/users", usersRoutes);
+app.use("/logs", logsRoutes);
+
 
 app.get("/", (req, res) => {
   res.send("Server is running!");
