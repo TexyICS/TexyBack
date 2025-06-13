@@ -6,11 +6,12 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
 
 export const signToken = (user) => {
+  console.log("Signing token for user:", user.user_id);
   return jwt.sign(
     {
-      id: user.id,
+      id: user.user_id,
       email: user.email,
-      userType: user.userType
+      userType: user.userType || "user",
     },
     JWT_SECRET,
     { expiresIn: "1y" }

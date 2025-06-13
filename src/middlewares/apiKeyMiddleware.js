@@ -1,15 +1,14 @@
-import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+import prisma from "../lib/prisma.js"; // Assurez-vous que le chemin est correct
 
 export const checkApiKey = async (req, res, next) => {
     const apiKey = req.headers['x-api-key'];
     console.log(apiKey)
     try {
-        const keyExists = await prisma.apiKeysApp.findUnique({
-            where: { keyId: apiKey }
+        const keyExists = await prisma.api_keys_app.findUnique({
+            where: { key_id: apiKey }
         });
-
-        if (!keyExists || !keyExists.isActive) { // Utiliser isActive
+        console.log(keyExists)
+        if (!keyExists || !keyExists.is_active) { // Utiliser isActive
             return res.status(403).json({ message: 'Invalid or inactive API key' });
         }
 

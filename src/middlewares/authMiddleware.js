@@ -1,6 +1,8 @@
 import { verifyToken } from "../utils/jwt.js"; 
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import prisma from "../lib/prisma.js";
+
 
 dotenv.config();
 
@@ -29,7 +31,7 @@ export const verifyAuthToken = (req, res, next) => {
 export const extractUserIdFromToken = async (req, res, next) => {
     try {
         const authHeader = req.headers['authorization'];
-
+        console.log("Authorization Header:", authHeader);
         // Vérifier la présence de l'en-tête
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({ error: "Authorization header missing or malformed" });
@@ -39,12 +41,12 @@ export const extractUserIdFromToken = async (req, res, next) => {
 
         // Vérifier et décoder le token
         const decoded = jwt.verify(token, JWT_SECRET);
-
+        console.log("✅ Token decoded:", decoded);
         // Rechercher l'utilisateur dans la base de données
         const user = await prisma.users.findUnique({
-            where: { user_id: decoded.user_id },
+            where: { user_id: decoded.id },
         });
-
+        console.log("User found:", user);
         if (!user || !user.is_active) {
             return res.status(403).json({ error: "Invalid or inactive user" });
         }

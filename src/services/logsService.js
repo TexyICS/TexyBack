@@ -1,16 +1,16 @@
 import prisma from "../lib/prisma.js";
 
 export const getLogsByApiKey = async (apiKey) => {
-    return await prisma.lOGS_MESSAGE.findMany({
-        where: { keyId: apiKey },
+    return await prisma.logs_message.findMany({
+        where: { key_id: apiKey },
     });
 };
 
 export const getLogsByApiKeyAndUserId = async (apiKey, userId) => {
-    return await prisma.lOGS_MESSAGE.findMany({
+    return await prisma.logs_message.findMany({
         where: {
-            keyId: apiKey,
-            idUser: userId,
+            key_id: apiKey,
+            id_user: userId,
         },
     });
 };

@@ -8,6 +8,17 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+model users {
+  user_id      String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  username     String     @unique
+  password     String
+  phone_number String?
+  email        String     @unique
+  is_active    Boolean?   @default(true)
+  created_at   DateTime?  @default(now()) @db.Timestamptz(6)
+  api_keys     api_keys[]
+}
+
 model api_clients {
   api_client_id String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name          String
@@ -34,68 +45,50 @@ model api_keys {
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model api_keys_app {
+  key_id       String         @id @db.Uuid
+  phone        String         @db.VarChar(15)
+  mail         String         @db.VarChar(255)
+  role         String         @db.VarChar(10)
+  nomorganisme String?        @db.VarChar(255)
+  is_active    Boolean?       @default(true)
+  created_at   DateTime?      @default(now()) @db.Timestamp(6)
+  logs_message logs_message[]
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+model logs_message {
+  id           Int           @id @default(autoincrement())
+  key_id       String?       @db.Uuid
+  phone_number String?       @db.VarChar(15)
+  message      String
+  id_user      String?       @db.Uuid
+  status       String        @db.VarChar(20)
+  timestamp    DateTime?     @default(now()) @db.Timestamp(6)
+  api_keys_app api_keys_app? @relation(fields: [key_id], references: [key_id], onUpdate: NoAction)
+}
+
 model sms_logs {
-  log_id        String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  api_key_id    String?      @db.Uuid
-  api_client_id String?      @db.Uuid
+  log_id        String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  api_key_id    String?       @db.Uuid
+  api_client_id String?       @db.Uuid
   message       String
   phone_number  String
-  timestamp     DateTime?    @default(now()) @db.Timestamptz(6)
-  direction     String?
-  status        String?
-  message_id    String?      @unique
-  api_clients   api_clients? @relation(fields: [api_client_id], references: [api_client_id], onDelete: Cascade, onUpdate: NoAction)
-  api_keys      api_keys?    @relation(fields: [api_key_id], references: [key_id], onUpdate: NoAction)
+  timestamp     DateTime?     @default(now()) @db.Timestamptz(6)
+  message_id    String?       @unique
+  direction     SmsDirection?
+  status        SmsStatus?
+  api_clients   api_clients?  @relation(fields: [api_client_id], references: [api_client_id], onDelete: Cascade, onUpdate: NoAction)
+  api_keys      api_keys?     @relation(fields: [api_key_id], references: [key_id], onUpdate: NoAction)
 }
 
-model users {
-  user_id      String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username     String     @unique
-  password     String
-  phone_number String?
-  email        String     @unique
-  is_active    Boolean?   @default(true)
-  created_at   DateTime?  @default(now()) @db.Timestamptz(6)
-  api_keys     api_keys[]
+enum SmsDirection {
+  inbound
+  outbound
 }
 
-model ApiKeysApp {
-  keyId         String   @id @default(uuid()) @map("key_id") @db.Uuid
-  phone         String   @db.VarChar(15)
-  mail          String   @db.VarChar(255)
-  role          Role
-  nomOrganisme  String?  @map("nom_organisme") @db.VarChar(255)
-  isActive      Boolean  @default(true) @map("is_active")
-  createdAt     DateTime @default(now()) @map("created_at")
-  
-  // Relations
-  logsMessage   LogsMessage[]
-  
-  @@map("API_KEYS_APP")
-}
-
-model LogsMessage {
-  id          Int      @id @default(autoincrement())
-  keyId       String?  @map("key_id") @db.Uuid
-  phoneNumber String?  @map("phone_number") @db.VarChar(15)
-  message     String   @db.Text
-  idUser      String?  @map("id_user") @db.Uuid
-  status      MessageStatus
-  timestamp   DateTime @default(now())
-  
-  // Relations
-  apiKey      ApiKeysApp? @relation(fields: [keyId], references: [keyId], onDelete: SetNull)
-  
-  @@map("LOGS_MESSAGE")
-}
-
-enum Role {
-  developer
-  student
-}
-
-enum MessageStatus {
+enum SmsStatus {
+  sent
   pending
-  success
-  error
+  received
 }
