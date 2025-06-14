@@ -13,3 +13,18 @@ export async function findUserByEmail(email) {
     }
   });
 }
+
+
+export async function findUserById(userId) {
+  return await prisma.users.findUnique({
+    where: { user_id: userId },
+    select: {
+      user_id: true,
+      email: true,
+      username: true,
+      phone_number: true,
+      is_active: true,
+      created_at: true
+    }
+  });
+}

@@ -2,14 +2,14 @@ import { verifyToken } from "../utils/jwt.js";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import prisma from "../lib/prisma.js";
-
+import { findUserById } from "../services/authService.js";
 
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "fallback_secret";
 
 
-export const verifyAuthToken = (req, res, next) => {
+export const verifyAuthToken = async (req, res, next) => {
   const authHeader = req.headers.authorization;
   const token = authHeader && authHeader.split(" ")[1]; 
 
@@ -18,12 +18,71 @@ export const verifyAuthToken = (req, res, next) => {
   }
 
   try {
-    const decoded = verifyToken(token); 
-    console.log("✅ Token verified for user:", decoded);
-    req.user = decoded; 
+    const decoded = verifyToken(token);
+    console.log("✅ Token decoded:", decoded);
+    // Vérifier que l'utilisateur existe toujours et est actif
+    const user = await findUserById(decoded.id);
+    if (!user || !user.is_active) {
+      return res.status(403).json({ error: "User not found or inactive" });
+    }
+    
+    req.user = user; 
     next();
   } catch (error) {
+    console.error("Auth middleware error:", error);
     return res.status(403).json({ error: "Invalid or expired token" });
+  }
+};
+
+export const verifyApiKey = async (req, res, next) => {
+  const apiKey = req.headers['x-api-key'] || req.query.api_key;
+
+  if (!apiKey) {
+    return res.status(401).json({ 
+      error: "API key required" 
+    });
+  }
+
+  try {
+    const { PrismaClient } = await import("@prisma/client");
+    const prisma = new PrismaClient();
+
+    const keyRecord = await prisma.api_keys.findFirst({
+      where: {
+        api_key: apiKey,
+        is_active: true,
+        OR: [
+          { expires_at: null },
+          { expires_at: { gt: new Date() } }
+        ]
+      },
+      include: {
+        users: {
+          select: {
+            user_id: true,
+            username: true,
+            email: true,
+            is_active: true
+          }
+        }
+      }
+    });
+
+    if (!keyRecord || !keyRecord.users || !keyRecord.users.is_active) {
+      return res.status(403).json({ 
+        error: "Invalid or expired API key" 
+      });
+    }
+
+    req.apiKey = keyRecord;
+    req.user = keyRecord.users;
+    next();
+
+  } catch (error) {
+    console.error("API key verification error:", error);
+    return res.status(500).json({ 
+      error: "API key verification failed" 
+    });
   }
 };
 

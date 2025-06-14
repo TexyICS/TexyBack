@@ -13,8 +13,7 @@ export const signToken = (user) => {
       email: user.email,
       userType: user.userType || "user",
     },
-    JWT_SECRET,
-    { expiresIn: "1y" }
+    JWT_SECRET
   );
 };
 
