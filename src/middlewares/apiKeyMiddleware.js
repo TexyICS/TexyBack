@@ -1,4 +1,4 @@
-import prisma from "../lib/prisma.js"; // Assurez-vous que le chemin est correct
+import prisma from "../lib/prisma.js"; 
 
 export const checkApiKey = async (req, res, next) => {
     const apiKey = req.headers['x-api-key'];
@@ -18,4 +18,24 @@ export const checkApiKey = async (req, res, next) => {
         console.error('Error checking API key:', error);
         return res.status(500).json({ message: 'Internal server error' });
     }
+};
+
+
+export const checkUniqueApiKey = async (req, res, next) => {
+    const { phone, mail } = req.body;
+
+    const existingUser = await prisma.api_keys_app.findFirst({
+        where: {
+            OR: [
+                { phone: phone },
+                { mail: mail },
+            ],
+        },
+    });
+
+    if (existingUser) {
+        return res.status(400).json({ message: 'Phone or mail already exists.' });
+    }
+
+    next();
 };
