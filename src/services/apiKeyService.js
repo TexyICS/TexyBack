@@ -40,7 +40,7 @@ export const sendApiKey = async (phone, mail, apiKey) => {
     <div style="max-width: 600px; margin: auto; background-color: white; padding: 2rem; border-radius: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.1); text-align: center;">
       
       <div style="margin-bottom: 1rem;">
-        <img src="https://raw.githubusercontent.com/TexyICS/TexyFrontEndWeb/main/assets/logo.png" alt="Logo" style="width: 60px; height: auto;" />
+        <img src="https://png.pngtree.com/png-vector/20211023/ourmid/pngtree-salon-logo-png-image_4004444.png" alt="Logo" style="width: 60px; height: auto;" />
       </div>
       
       <h1 style="font-size: 1.5rem; color: #111; margin-bottom: 1rem;">🎉 Your API Key</h1>
