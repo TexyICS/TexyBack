@@ -7,13 +7,39 @@ import logsRoutes from "./routes/logsRoutes.js";
 import apiKeyRoutes from "./routes/apiKeyRoutes.js"; 
 import path from 'path';
 import { fileURLToPath } from 'url';
+import swaggerUi from 'swagger-ui-express';
+import swaggerJsDoc from 'swagger-jsdoc';
+
 
 const app = express();
 const prisma = new PrismaClient();
 const PORT = process.env.PORT;
+// Swagger configuration
+const swaggerOptions = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "TexyBack API",
+      version: "1.0.0",
+      description: "Documentation de l’API TexyBack",
+    },
+    servers: [
+      {
+        url: "http://localhost:" + PORT,
+      },
+    ],
+  },
+  apis: ["./src/routes/*.js"], // Assure-toi que ce chemin est correct
+};
+
+// 👉 Tu dois d'abord générer ce document Swagger
+const swaggerSpec = swaggerJsDoc(swaggerOptions);
+// Routes de documentation Swagger
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 app.use(express.json());
 app.use(cors());
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 console.log("Current directory:", __dirname);

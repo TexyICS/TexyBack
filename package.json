@@ -19,7 +19,10 @@
     "email-existence": "^0.1.6",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
+    "mqtt": "^5.13.1",
     "nodemailer": "^7.0.3",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "uuid": "^11.1.0",
     "validator": "^13.15.15"
   },
