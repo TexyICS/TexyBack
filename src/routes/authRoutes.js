@@ -1,5 +1,5 @@
 import express from "express";
-import { login } from "../controllers/authController.js";
+import { login, signup } from "../controllers/authController.js";
 
 const router = express.Router();
 
@@ -44,5 +44,6 @@ const router = express.Router();
  *         description: Erreur serveur
  */
 router.post("/", login);
+router.post("/signup", signup);
 
 export default router;

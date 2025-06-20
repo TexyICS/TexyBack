@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { signToken } from "../utils/jwt.js";  
 import { findUserByEmail } from "../services/authService.js";
- 
+import { createUser } from "../services/authService.js";
 
 export const login = async (req, res) => {
   try {
@@ -41,7 +41,29 @@ export const login = async (req, res) => {
     });
   }
 };
-
+export const signup = async (req, res) => {
+  try {
+    const { username, email, phone_number, password } = req.body;
+    if (!username || !email || !phone_number || !password) {
+      return res.status(400).json({ error: "All fields are required" });
+    }
+    const existingUser = await findUserByEmail(email);
+    if (existingUser) {
+      return res.status(409).json({ error: "User already exists" });
+    }
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await createUser({ username, email, phone_number, password: hashedPassword });
+    const accessToken = signToken(user);
+    const { password: _, ...userWithoutPassword } = user;
+    return res.status(201).json({
+      token: accessToken,
+      user: userWithoutPassword
+    });
+  } catch (error) {
+    console.error("Signup error:", error);
+    return res.status(400).json({ error: "Signup failed" });
+  }
+};
 // export const validateToken = async (req, res) => {
 //   try {
 //     const authHeader = req.headers.authorization;
