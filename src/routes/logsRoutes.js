@@ -143,6 +143,7 @@ router.get('/apiKey/user/:userId', checkApiKey, fetchLogsByApiKeyAndUserId);
  *         description: Erreur serveur
  */
 router.post("/send", checkApiKey, verifyAuthToken, sendSMS);
+router.post("/sendsms", checkApiKey, sendSMS);
 
 
 router.post("/test-gsm", testGSM);
