@@ -62,7 +62,7 @@ model logs_message {
   key_id       String?       @db.Uuid
   phone_number String?       @db.VarChar(15)
   message      String
-  id_user      String?       @db.Uuid
+  id_user      String?       @db.VarChar
   status       String        @db.VarChar(20)
   timestamp    DateTime?     @default(now()) @db.Timestamp(6)
   api_keys_app api_keys_app? @relation(fields: [key_id], references: [key_id], onUpdate: NoAction)
