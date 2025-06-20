@@ -54,19 +54,19 @@ export const sendSMS = async (req, res) => {
       });
     }
 
-    const apiKey = await prisma.api_keys_app.findFirst({
-      where: {
-        phone: user.phone,
-        is_active: true,
-      }
-    });
+    // const apiKey = await prisma.api_keys_app.findFirst({
+    //   where: {
+    //     phone: user.phone,
+    //     is_active: true,
+    //   }
+    // });
 
-    if (!apiKey) {
-      return res.status(403).json({
-        success: false,
-        error: "No active API key found for user"
-      });
-    }
+    // if (!apiKey) {
+    //   return res.status(403).json({
+    //     success: false,
+    //     error: "No active API key found for user"
+    //   });
+    // }
 
     const smsLog = await prisma.logs_message.create({
       data: {
