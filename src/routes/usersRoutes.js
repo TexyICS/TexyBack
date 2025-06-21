@@ -1,7 +1,8 @@
 import express from "express";
 import {
-  getUser,
+  getUser,updateUserInfo,updatePassword
 } from "../controllers/usersController.js";
+import {verifyAuthToken} from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
@@ -46,5 +47,9 @@ const router = express.Router();
  *         description: Erreur serveur
  */
 router.get("/:id", getUser);
+router.post("/update-user", verifyAuthToken, updateUserInfo);
+router.post("/update-password", verifyAuthToken, updatePassword);
+
+
 
 export default router;
