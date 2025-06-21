@@ -7,6 +7,7 @@ import {
   fetchLogsByApiKeyAndUser,
   fetchLogsByApiKeyAndUserId,
   sendSMS,
+  send,
   testGSM
 } from '../controllers/logsController.js';
 
@@ -143,7 +144,7 @@ router.get('/apiKey/user/:userId', checkApiKey, fetchLogsByApiKeyAndUserId);
  *         description: Erreur serveur
  */
 router.post("/send", checkApiKey, verifyAuthToken, sendSMS);
-router.post("/sendsms", checkApiKey, sendSMS);
+router.post("/sendsms", checkApiKey, send);
 
 
 router.post("/test-gsm", testGSM);

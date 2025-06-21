@@ -45,6 +45,7 @@ export const fetchLogsByApiKeyAndUserId = async (req, res) => {
 export const sendSMS = async (req, res) => {
   try {
     const { number, message } = req.body;
+    const apiKeyHeader = req.headers['x-api-key'];
     const user = req.user;
 
     if (!number || !message) {
@@ -54,19 +55,24 @@ export const sendSMS = async (req, res) => {
       });
     }
 
-    // const apiKey = await prisma.api_keys_app.findFirst({
-    //   where: {
-    //     phone: user.phone,
-    //     is_active: true,
-    //   }
-    // });
+    if (!apiKeyHeader) {
+      return res.status(401).json({
+        success: false,
+        error: "Missing API key in header"
+      });
+    }
 
-    // if (!apiKey) {
-    //   return res.status(403).json({
-    //     success: false,
-    //     error: "No active API key found for user"
-    //   });
-    // }
+    // Check if the API key exists and is active
+    const apiKey = await prisma.api_keys_app.findUnique({
+      where: { key_id: apiKeyHeader }
+    });
+
+    if (!apiKey || !apiKey.is_active) {
+      return res.status(403).json({
+        success: false,
+        error: "Invalid or inactive API key"
+      });
+    }
 
     const smsLog = await prisma.logs_message.create({
       data: {
@@ -155,6 +161,123 @@ export const sendSMS = async (req, res) => {
   }
 };
 
+export const send = async (req, res) => {
+  try {
+    const { number, message, user_id } = req.body;
+    const apiKeyHeader = req.headers['x-api-key'];
+
+    if (!number || !message ) {
+      return res.status(400).json({
+        success: false,
+        error: "Phone number, message, and user ID are required"
+      });
+    }
+
+    if (!apiKeyHeader) {
+      return res.status(401).json({
+        success: false,
+        error: "Missing API key in header"
+      });
+    }
+
+    // Check if the API key exists and is active
+    const apiKey = await prisma.api_keys_app.findUnique({
+      where: { key_id: apiKeyHeader }
+    });
+
+    if (!apiKey || !apiKey.is_active) {
+      return res.status(403).json({
+        success: false,
+        error: "Invalid or inactive API key"
+      });
+    }
+
+    const smsLog = await prisma.logs_message.create({
+      data: {
+        key_id: apiKey.key_id,
+        phone_number: number,
+        message: message,
+        id_user: user_id || null,
+        status: 'pending'
+      }
+    });
+
+    const smsPayload = {
+      number,
+      message,
+      log_id: smsLog.id,
+      sender: user_id
+    };
+
+    mqttClient.publish(requestTopic, JSON.stringify(smsPayload));
+    console.log("📤 MQTT message sent to ESP32");
+
+    let responded = false;
+    let timeout;
+
+    const handleResponse = async (topic, payload) => {
+      try {
+        const data = JSON.parse(payload.toString());
+        console.log("📩 MQTT response received:", data);
+        if (data.log_id == smsLog.id) {
+          console.log("✅ Valid response received for log ID:", smsLog.id);
+          mqttClient.removeListener("message", handleResponse);
+          clearTimeout(timeout); // ✅ Prevent timeout after valid response
+
+          const newStatus = data.status === "success" ? "success" : "error";
+
+          await prisma.logs_message.update({
+            where: { id: smsLog.id },
+            data: { status: newStatus }
+          });
+
+          if (!responded) {
+            responded = true;
+            return res.status(200).json({
+              success: data.status === "success",
+              data: {
+                log_id: smsLog.id,
+                status: data.status
+              }
+            });
+          }
+        }
+      } catch (e) {
+        console.error("❌ Error parsing MQTT response:", e.message);
+      }
+    };
+
+    mqttClient.on("message", handleResponse);
+
+    // ⏱️ Timeout if ESP32 does not respond in time
+    timeout = setTimeout(async () => {
+      mqttClient.removeListener("message", handleResponse);
+
+      if (!responded) {
+        responded = true;
+
+        await prisma.logs_message.update({
+          where: { id: smsLog.id },
+          data: { status: "error" }
+        });
+
+        console.warn("⏰ Timeout: ESP32 did not respond in time");
+        return res.status(504).json({
+          success: false,
+          error: "ESP32 did not respond in time",
+          log_id: smsLog.id
+        });
+      }
+    }, 50000); // ⏱️ 10 seconds timeout
+
+  } catch (error) {
+    console.error("❌ SMS Controller error:", error);
+    return res.status(500).json({
+      success: false,
+      error: "Internal server error"
+    });
+  }
+};
 // Route to test if GSM module can send an SMS
 export const testGSM = async (req, res) => {
   const testNumber = "+213782964272"; 
